@@ -1,5 +1,6 @@
-{
-   "persons":[],
+{  
+   "my":[],
+   "persons":["my"],
    "personData":[],
 
    "music":[] 

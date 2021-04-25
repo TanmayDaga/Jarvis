@@ -4,11 +4,21 @@ import webbrowser
 from pywhatkit import search, playonyt
 import wikipedia
 from concurrent.futures import ThreadPoolExecutor
+import json
+
+jsonFileObjectForWrite = None
+dictObj = None
+myDetails = []  # Name, Birthday etc in form of dict
+persons = []  # Name of persons name to be saved
+personsData = []  # personsData in same order in form of list as in persons
+music = []  # path of music files in computer
 
 
 def calculate(expression):
     try:
         return eval(expression)
+    except ZeroDivisionError as z:
+        return "ZeroDivisionerror"
     except Exception as e:
         return None
 
@@ -60,3 +70,93 @@ def createNewThread(target, *args):
     thread = ThreadPoolExecutor().submit(target, *args)
     return thread
 
+
+
+#######################--------Json file methods-----------#######################
+def loadDataJson():
+    """
+        loads data in form of list and dictinoary from file into memory and creates a write file io object 
+        Data.json structure
+        my: --> list of owners details[Name, birthday, extrainfo can be added]
+        persons:  --> list of names of people whose data to be saved
+        personsData --> Contains details in list [birthday, anniversary, extraInfo] in same order as persons list
+        music --> Contains list of path of music in computer
+    """
+
+    global music, myDetails, persons, personsData, jsonFileObjectForWrite
+    jsonFileObjectForRead = open("data.json", 'r')
+    dictObj = json.load(jsonFileObjectForRead)
+    myDetails = dictObj['my']
+    persons = dictObj['persons']
+    personsData = dictObj['personsData']
+    music = dictObj['music']
+    jsonFileObjectForRead.close()
+    jsonFileObjectForWrite = open("data.json", 'w')
+
+
+def getPersonsData(index):
+    """Index of person in persons list
+        Return list of data of person with program
+    """
+    try:
+        return personsData[index]
+    except IndexError as e:
+        return None
+
+
+def addPerson(personName):
+    """
+    Adds a person to json file and updates list
+    True: name added succesfully
+    False: name already exists
+    """
+
+    # checking if it is already in list
+    if personName.lower() not in dictObj['persons']:
+
+        # updating in memory
+        persons.append(personName.lower())
+        personsData.append([None, None, None])
+
+        # Data to be dumped in file
+        dictObj['persons'].append(personName.lower())
+        # Creating empty list of data
+        dictObj['personsData'].append([None, None, None])
+        json.dump(dictObj, jsonFileObjectForWrite)
+
+
+def addPersonBirthday(personName, birthday):
+    """
+    Adds birthday to list
+    if person not exists then adds it
+    """
+
+    addPerson(personName)  # automatically checks if not exists then adds it
+    personsIndex = dictObj['persons'].index(personName.lower())
+    personsData[personsIndex][0] = birthday
+    dictObj['personsData'][personsIndex][0] = birthday
+    json.dump(dictObj, jsonFileObjectForWrite)
+
+
+def addPersonAnniversary(personName, anniversary):
+    """
+    Adds anniversary to list
+    if person not exists then adds it
+    """
+    addPerson(personName)  # automatically checks if not exists then adds it
+    personsIndex = dictObj['persons'].index(personName.lower())
+    personsData[personsIndex][1] = anniversary
+    dictObj['personsData'][personsIndex][1] = anniversary
+    json.dump(dictObj, jsonFileObjectForWrite)
+
+def addExtraInfo(personName, extraInfo):
+    """
+    Adds extra info to list
+    if person not exists then adds it
+    Note: ExtraInfo should be in dictionary form
+    """
+    addPerson(personName)  # automatically checks if not exists then adds it
+    personsIndex = dictObj['persons'].index(personName.lower())
+    personsData[personsIndex].append(extraInfo)
+    dictObj['personsData'][personsIndex].append(extraInfo)
+    json.dump(dictObj, jsonFileObjectForWrite)
